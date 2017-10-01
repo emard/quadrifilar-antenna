@@ -1,5 +1,5 @@
 /*
-
+// TODO: include:
 Calculator from javascript adapted to openscad
 original from: John Coppens ON6JC/LW3HAZ
 https://www.jcoppens.com/ant/qfh/calc.en.php
@@ -98,9 +98,12 @@ tube_l=400; // mm length
 holder_d_clr=0.2; // clearance from tube to plastic holder
 
 holder_h=10; // mm height along the tube length
-holder_ring_thick=2; // mm thickenss of the ring around tube
-holder_radial_thick=wire_hole_d+2*holder_ring_thick; // mm thickness of radial parts
-holder_radial_over=wire_hole_d+2*holder_ring_thick; // length to hold the wire
+holder_tube_ring_thick=2; // mm thickenss of the big ring around tube
+holder_wire_ring_thick=2; // mm thickness of the small ring around wire
+//holder_radial_thick=wire_hole_d+2*holder_tube_ring_thick; // mm thickness of radial parts
+holder_radial_thick=2*holder_wire_ring_thick;
+//holder_radial_over=wire_hole_d+2*holder_tube_ring_thick; // length to hold the wire
+holder_radial_over=0;
 holder_radial_d=winding_d+holder_radial_over*2; // mm total diameter of the radials
 circular_segments=32; // smoothness of the rings
 
@@ -111,7 +114,8 @@ holder_angle=10; // wire twist angle
 module wire_holder()
 {
   inner_d=tube_d+2*holder_d_clr;
-  outer_d=inner_d+2*holder_ring_thick;
+  outer_d=inner_d+2*holder_tube_ring_thick;
+  wire_holder_d=wire_hole_d+2*holder_wire_ring_thick;
   difference()
   {
     intersection()
@@ -128,7 +132,14 @@ module wire_holder()
             translate([holder_radial_d/4,0,0])
           difference()
           {
+            union()
+            {
+                // the radial
             cube([holder_radial_d/2,holder_radial_thick,2*holder_h],center=true);
+                // cylindrical wire holder at the end
+             translate([holder_radial_d/4,0,0])
+                cylinder(d=wire_holder_d,h=2*holder_h,$fn=circular_segments/2,center=true);
+            }
             // drill holes on both sides
             // for(j=[-1:2:1])
               translate([1*winding_d/4,0,0])
