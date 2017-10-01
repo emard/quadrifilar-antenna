@@ -86,20 +86,61 @@ Internal diameter
 
 */
 
+// wire winding diameter
+winding_d=50;
+wire_hole_d=4; // drilled hole for the wire
+
 // main carrier tube
 tube_d=18; // mm diameter
 tube_l=400; // mm length
+
 
 holder_d_clr=0.2; // clearance from tube to plastic holder
 
 holder_h=10; // mm height along the tube length
 holder_ring_thick=2; // mm thickenss of the ring around tube
 holder_radial_thick=7; // mm thickness of radial parts
+holder_radial_over=wire_hole_d; // length to hold the wire
+holder_radial_d=winding_d+holder_radial_over*2; // mm total diameter of the radials
+circular_segments=32; // smoothness of the rings
+
+holder_angle=10; // wire twist angle 
+
+
 
 module wire_holder()
 {
-  outer_d=tube_d+2*holder_d_clr+2*holder_ring_thick;
-  cylinder(d=tube_d+2*holder_ring_thick
+  inner_d=tube_d+2*holder_d_clr;
+  outer_d=inner_d+2*holder_ring_thick;
+  difference()
+  {
+    intersection()
+    {
+    union()
+    {
+      // around the tube
+      cylinder(d=outer_d, h=holder_h, $fn=circular_segments, center=true);
+      // the radials cross
+      for(i=[0:1])
+      {
+        rotate([0,0,i*90])
+          rotate([holder_angle,0,0])
+          difference()
+          {
+            cube([holder_radial_d,holder_radial_thick,2*holder_h],center=true);
+            // drill holes on both sides
+            for(j=[-1:2:1])
+              translate([j*winding_d/2,0,0])
+              cylinder(d=wire_hole_d,h=2*holder_h+0.01,center=true);
+          }
+      }
+    }
+       // enclosing box that cuts off angled radials
+       cube([holder_radial_d*2,holder_radial_d*2,holder_h],center=true);
+    }
+    // hole inside
+    cylinder(d=inner_d, h=holder_h+0.01, $fn=circular_segments, center=true);
+  }
 }
 
 
