@@ -99,8 +99,8 @@ holder_d_clr=0.2; // clearance from tube to plastic holder
 
 holder_h=10; // mm height along the tube length
 holder_ring_thick=2; // mm thickenss of the ring around tube
-holder_radial_thick=7; // mm thickness of radial parts
-holder_radial_over=wire_hole_d; // length to hold the wire
+holder_radial_thick=wire_hole_d+2*holder_ring_thick; // mm thickness of radial parts
+holder_radial_over=wire_hole_d+2*holder_ring_thick; // length to hold the wire
 holder_radial_d=winding_d+holder_radial_over*2; // mm total diameter of the radials
 circular_segments=32; // smoothness of the rings
 
@@ -121,16 +121,17 @@ module wire_holder()
       // around the tube
       cylinder(d=outer_d, h=holder_h, $fn=circular_segments, center=true);
       // the radials cross
-      for(i=[0:1])
+      for(i=[0:3])
       {
         rotate([0,0,i*90])
           rotate([holder_angle,0,0])
+            translate([holder_radial_d/4,0,0])
           difference()
           {
-            cube([holder_radial_d,holder_radial_thick,2*holder_h],center=true);
+            cube([holder_radial_d/2,holder_radial_thick,2*holder_h],center=true);
             // drill holes on both sides
-            for(j=[-1:2:1])
-              translate([j*winding_d/2,0,0])
+            // for(j=[-1:2:1])
+              translate([1*winding_d/4,0,0])
               cylinder(d=wire_hole_d,h=2*holder_h+0.01,center=true);
           }
       }
