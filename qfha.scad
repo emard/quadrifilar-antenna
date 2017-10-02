@@ -86,8 +86,8 @@ Internal diameter
 */
 
 // wire winding diameter
-winding_d=40;
-winding_h=100;
+winding_d=[40,35]; // mm [large,small]
+winding_h=[100,90]; // mm [large,small]
 wire_d=1.78;
 wire_hole_d=4; // drilled hole for the wire
 wire_twist=180; // degrees
@@ -102,14 +102,15 @@ holder_d_clr=0.2; // clearance from tube to plastic holder
 holder_h=8; // mm height along the tube length
 holder_tube_ring_thick=2; // mm thickenss of the big ring around tube
 holder_wire_ring_thick=2; // mm thickness of the small ring around wire
-//holder_radial_thick=wire_hole_d+2*holder_tube_ring_thick; // mm thickness of radial parts
-holder_radial_thick=2*holder_wire_ring_thick;
+holder_radial_thick=2*holder_wire_ring_thick; // mm thickness of radial parts
+//holder_radial_thick=2*holder_wire_ring_thick;
 //holder_radial_over=wire_hole_d+2*holder_tube_ring_thick; // length to hold the wire
 holder_radial_over=0;
-holder_radial_d=winding_d+holder_radial_over*2; // mm total diameter of the radials
+holder_radial_d=winding_d+[holder_radial_over,holder_radial_over]*2; // mm total diameter of the radials
 circular_segments=32; // smoothness of the rings
+extrusion_slices=10; // smoothness of helicoidal extruded countour
 
-holder_angle=atan(winding_d/winding_h); // wire twist angle 
+//holder_angle=atan(winding_d/winding_h); // wire twist angle 
 
 
 // h-height at position
@@ -127,6 +128,7 @@ module wire_holder(h=0)
     union()
     {
       // around the tube
+      translate([0,0,h])
       cylinder(d=outer_d, h=holder_h, $fn=circular_segments, center=true);
       // the radials cross
       for(i=[0:3])
@@ -134,20 +136,19 @@ module wire_holder(h=0)
         index=i % 2;    
         rotate([0,0,i*90])
           // helical extrude the holder rings around the shape of wires
-            linear_extrude(height = winding_h, convexity = 10, twist = wire_twist, slices=100, center=true)
-    translate([winding_d/2, 0])
+            linear_extrude(height = winding_h[index], convexity = 10, twist = wire_twist, slices=extrusion_slices, center=true)
+    translate([winding_d[index]/2, 0])
       difference()
       {
         union()
         {
           // the radial
-          translate([-winding_d/4,0])
-          square([winding_d/2,holder_radial_thick],center=true);
+          translate([-winding_d[index]/4,0])
+          square([winding_d[index]/2,holder_radial_thick],center=true);
           // the holder
           circle(d = wire_holder_d,$fn=6,center=true);
         }
         circle(d = wire_hole_d,$fn=6,center=true);
-
       }
 
           // old, linear version
@@ -173,9 +174,11 @@ module wire_holder(h=0)
       }
     }
        // enclosing box that cuts off angled radials
-       cube([holder_radial_d*2,holder_radial_d*2,holder_h],center=true);
+       translate([0,0,h])
+       cube([holder_radial_d[0]*2,holder_radial_d[1]*2,holder_h],center=true);
     }
     // hole inside
+    translate([0,0,h])
     cylinder(d=inner_d, h=holder_h+0.01, $fn=circular_segments, center=true);
   }
 }
@@ -191,11 +194,13 @@ module helix(d=10,h=10,wire=3,twist=180)
 module winding()
 {
  for(i=[0:3])
+ {
+   index=i%2;
    rotate([0,0,90*i])
-     %helix(d=winding_d,h=winding_h,wire=wire_d,twist=180);
-   
+     %helix(d=winding_d[index],h=winding_h[index],wire=wire_d,twist=wire_twist);
+ }
 }
 
 
-wire_holder();
+wire_holder(h=0);
 winding();
