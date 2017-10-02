@@ -86,10 +86,11 @@ Internal diameter
 */
 
 // wire winding diameter
-winding_d=30;
+winding_d=40;
 winding_h=100;
 wire_d=1.78;
 wire_hole_d=4; // drilled hole for the wire
+wire_twist=180; // degrees
 
 // main carrier tube
 tube_d=18; // mm diameter
@@ -98,7 +99,7 @@ tube_l=400; // mm length
 
 holder_d_clr=0.2; // clearance from tube to plastic holder
 
-holder_h=4; // mm height along the tube length
+holder_h=8; // mm height along the tube length
 holder_tube_ring_thick=2; // mm thickenss of the big ring around tube
 holder_wire_ring_thick=2; // mm thickness of the small ring around wire
 //holder_radial_thick=wire_hole_d+2*holder_tube_ring_thick; // mm thickness of radial parts
@@ -131,8 +132,29 @@ module wire_holder(h=0)
       for(i=[0:3])
       {
         rotate([0,0,i*90])
+          // helical extrude the holder rings around the shape of wires
+
+            linear_extrude(height = winding_h, convexity = 10, twist = wire_twist, slices=100, center=true)
+    translate([winding_d/2, 0])
+      difference()
+      {
+        union()
+        {
+          // the radial
+          translate([-winding_d/4,0])
+          square([winding_d/2,holder_radial_thick],center=true);
+          // the holder
+          circle(d = wire_holder_d,$fn=6,center=true);
+        }
+        circle(d = wire_hole_d,$fn=6,center=true);
+
+      }
+
+          // old, linear version
+          if(0)
           rotate([holder_angle,0,0])
             translate([holder_radial_d/4,0,0])
+          
           difference()
           {
             union()
@@ -158,9 +180,10 @@ module wire_holder(h=0)
   }
 }
 
+// wire helix
 module helix(d=10,h=10,wire=3,twist=180)
 {
-  linear_extrude(height = h, center = true, convexity = 10, twist = twist, slices=10)
+  linear_extrude(height = h, convexity = 10, twist = twist, slices=10, center=true)
     translate([d/2, 0, 0])
       circle(d = wire,$fn=6,center=true);
 }
