@@ -131,9 +131,9 @@ module wire_holder(h=0)
       // the radials cross
       for(i=[0:3])
       {
+        index=i % 2;    
         rotate([0,0,i*90])
           // helical extrude the holder rings around the shape of wires
-
             linear_extrude(height = winding_h, convexity = 10, twist = wire_twist, slices=100, center=true)
     translate([winding_d/2, 0])
       difference()
