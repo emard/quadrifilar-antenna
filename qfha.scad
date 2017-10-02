@@ -82,12 +82,13 @@ Compensated horizontal separation
 Antenna height
     Height of the loop (twisted!).
 Internal diameter
-    The diameter of the (imaginary) cylinder 
-
+    The diameter of the (imaginary) cylinder
 */
 
 // wire winding diameter
-winding_d=50;
+winding_d=30;
+winding_h=100;
+wire_d=1.78;
 wire_hole_d=4; // drilled hole for the wire
 
 // main carrier tube
@@ -97,7 +98,7 @@ tube_l=400; // mm length
 
 holder_d_clr=0.2; // clearance from tube to plastic holder
 
-holder_h=10; // mm height along the tube length
+holder_h=4; // mm height along the tube length
 holder_tube_ring_thick=2; // mm thickenss of the big ring around tube
 holder_wire_ring_thick=2; // mm thickness of the small ring around wire
 //holder_radial_thick=wire_hole_d+2*holder_tube_ring_thick; // mm thickness of radial parts
@@ -107,11 +108,13 @@ holder_radial_over=0;
 holder_radial_d=winding_d+holder_radial_over*2; // mm total diameter of the radials
 circular_segments=32; // smoothness of the rings
 
-holder_angle=10; // wire twist angle 
+holder_angle=atan(winding_d/winding_h); // wire twist angle 
 
 
-
-module wire_holder()
+// h-height at position
+// tracks angle of the wire
+// and rotates the holder
+module wire_holder(h=0)
 {
   inner_d=tube_d+2*holder_d_clr;
   outer_d=inner_d+2*holder_tube_ring_thick;
@@ -138,12 +141,12 @@ module wire_holder()
             cube([holder_radial_d/2,holder_radial_thick,2*holder_h],center=true);
                 // cylindrical wire holder at the end
              translate([holder_radial_d/4,0,0])
-                cylinder(d=wire_holder_d,h=2*holder_h,$fn=circular_segments/2,center=true);
+                cylinder(d=wire_holder_d,h=10*holder_h,$fn=circular_segments/2,center=true);
             }
             // drill holes on both sides
             // for(j=[-1:2:1])
               translate([1*winding_d/4,0,0])
-              cylinder(d=wire_hole_d,h=2*holder_h+0.01,center=true);
+              cylinder(d=wire_hole_d,h=10*holder_h+0.01,$fn=6,center=true);
           }
       }
     }
@@ -155,5 +158,21 @@ module wire_holder()
   }
 }
 
+module helix(d=10,h=10,wire=3,twist=180)
+{
+  linear_extrude(height = h, center = true, convexity = 10, twist = twist, slices=10)
+    translate([d/2, 0, 0])
+      circle(d = wire,$fn=6,center=true);
+}
+
+module winding()
+{
+ for(i=[0:3])
+   rotate([0,0,90*i])
+     %helix(d=winding_d,h=winding_h,wire=wire_d,twist=180);
+   
+}
+
 
 wire_holder();
+winding();
